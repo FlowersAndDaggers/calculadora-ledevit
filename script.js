@@ -330,6 +330,117 @@ if (datos.usaBigBag) {
 
     const tituloPre = document.createElement('h3');
     tituloPre.innerText = "📦 Pre-Pesadas Totales:";
+function calcularTotales() {
+    if (colaDeProduccion.length === 0) { alert("¡Agregá algo a la lista primero!"); return; }
+
+    let totalIngredientes = {}; 
+    let totalPremezclas = {};   
+
+    colaDeProduccion.forEach(pedido => {
+        const receta = todasLasRecetas[pedido.codigoProducto];
+        let kilosRealesPedido = pedido.modo === "Batches" ? (pedido.cantidad * receta.batchTotal) : pedido.cantidad;
+        const ratioBatches = kilosRealesPedido / receta.batchTotal;
+
+        for (let nombre in receta.ingredientes) {
+            const datosIng = receta.ingredientes[nombre];
+            const kilosNecesarios = (datosIng.base / receta.batchTotal) * kilosRealesPedido;
+
+            if (!totalIngredientes[nombre]) totalIngredientes[nombre] = { kilos: 0, datos: datosIng };
+            totalIngredientes[nombre].kilos += kilosNecesarios;
+        }
+
+        for (let nombrePre of receta.premezclas) {
+            if (!totalPremezclas[nombrePre]) totalPremezclas[nombrePre] = 0;
+            totalPremezclas[nombrePre] += ratioBatches;
+        }
+    });
+
+    listaIngredientes.innerHTML = "";
+    zonaResultados.style.display = 'block';
+
+    const tituloMat = document.createElement('h3');
+    tituloMat.innerText = "🏭 Materias Primas Consolidadas:";
+    listaIngredientes.appendChild(tituloMat);
+
+    for (let nombre in totalIngredientes) {
+        const kilosTotales = totalIngredientes[nombre].kilos;
+        const datos = totalIngredientes[nombre].datos;
+        const adj = ajustesPedido[nombre] || { bolsones: 0, pallets: 0, bolsas: 0 };
+        let partes = [];
+        let bultosTotales = 0; // NUEVA VARIABLE PARA LOS BULTOS
+
+        if (datos.usaBigBag) {
+            let cantBigBags = Math.ceil(kilosTotales / datos.pesoBigBag);
+            
+            let bolsonesFinal = cantBigBags + (adj.bolsones || 0);
+            if (bolsonesFinal < 0) bolsonesFinal = 0;
+            let bolsasFinal = 0 + (adj.bolsas || 0);
+            if (bolsasFinal < 0) bolsasFinal = 0;
+
+            // En los productos con bolsones, sumamos los bolsones y las bolsas
+            bultosTotales = bolsonesFinal + bolsasFinal; 
+
+            let textoBolsones = `<strong>${bolsonesFinal}</strong> <button class="btn-ajuste" onclick="cambiarAjuste('${nombre}', 'bolsones', -1)">-</button><button class="btn-ajuste" onclick="cambiarAjuste('${nombre}', 'bolsones', 1)">+</button> Bolsones`;
+            if (adj.bolsones !== 0) textoBolsones += `<span class="texto-ajuste ${adj.bolsones > 0 ? 'texto-suma' : 'texto-resta'}">(${adj.bolsones > 0 ? '+' : ''}${adj.bolsones})</span>`;
+
+            let textoBolsas = `<strong>${bolsasFinal}</strong> <button class="btn-ajuste" onclick="cambiarAjuste('${nombre}', 'bolsas', -1)">-</button><button class="btn-ajuste" onclick="cambiarAjuste('${nombre}', 'bolsas', 1)">+</button> Bolsas`;
+            if (adj.bolsas !== 0) textoBolsas += `<span class="texto-ajuste ${adj.bolsas > 0 ? 'texto-suma' : 'texto-resta'}">(${adj.bolsas > 0 ? '+' : ''}${adj.bolsas})</span>`;
+
+            partes.push(`${iconBolson} ${textoBolsones}`);
+            partes.push(`${iconBolsa} ${textoBolsas}`);
+
+            let bolsonesEnterosRequeridos = Math.floor(kilosTotales / datos.pesoBigBag);
+            
+            if (bolsonesFinal > bolsonesEnterosRequeridos) {
+                let kilosSueltos = kilosTotales - (bolsonesEnterosRequeridos * datos.pesoBigBag);
+                let espacioSobrante = datos.pesoBigBag - kilosSueltos;
+                let bolsasParaReemplazar = Math.ceil(kilosSueltos / datos.pesoBolsa);
+
+                if (bolsasFinal < bolsasParaReemplazar) {
+                    partes.push(`<br><span style="color:#e74c3c; font-size:13px; margin-left: 45px;">⚠️ Sobran ${espacioSobrante.toFixed(1)}kg en el último bolsón. <button class="btn-alerta" onclick="convertirSobranteABolsas('${nombre}', ${bolsasParaReemplazar})">Pasar a ${bolsasParaReemplazar} bolsas</button></span>`);
+                }
+            }
+
+        } else {
+            let totalBolsasCalc = Math.ceil(kilosTotales / datos.pesoBolsa);
+            let kilosSueltos = kilosTotales % datos.pesoBolsa; 
+            
+            let palletsBase = Math.floor(totalBolsasCalc / datos.bolsasPallet);
+            let bolsasSueltasBase = totalBolsasCalc % datos.bolsasPallet;
+
+            let palletsFinal = palletsBase + (adj.pallets || 0);
+            if (palletsFinal < 0) palletsFinal = 0;
+            let bolsasFinal = bolsasSueltasBase + (adj.bolsas || 0);
+            if (bolsasFinal < 0) bolsasFinal = 0;
+
+            // Multiplicamos la cantidad de pallets por su capacidad y le sumamos las bolsas sueltas
+            bultosTotales = (palletsFinal * datos.bolsasPallet) + bolsasFinal; 
+
+            let textoPallets = `<strong>${palletsFinal}</strong> <button class="btn-ajuste" onclick="cambiarAjuste('${nombre}', 'pallets', -1)">-</button><button class="btn-ajuste" onclick="cambiarAjuste('${nombre}', 'pallets', 1)">+</button> Pallets`;
+            if (adj.pallets !== 0) textoPallets += `<span class="texto-ajuste ${adj.pallets > 0 ? 'texto-suma' : 'texto-resta'}">(${adj.pallets > 0 ? '+' : ''}${adj.pallets})</span>`;
+
+            let textoBolsas = `<strong>${bolsasFinal}</strong> <button class="btn-ajuste" onclick="cambiarAjuste('${nombre}', 'bolsas', -1)">-</button><button class="btn-ajuste" onclick="cambiarAjuste('${nombre}', 'bolsas', 1)">+</button> Bolsas`;
+            if (adj.bolsas !== 0) textoBolsas += `<span class="texto-ajuste ${adj.bolsas > 0 ? 'texto-suma' : 'texto-resta'}">(${adj.bolsas > 0 ? '+' : ''}${adj.bolsas})</span>`;
+
+            partes.push(`${iconPallet} ${textoPallets}`);
+            partes.push(`${iconBolsa} ${textoBolsas}`);
+            
+            if (kilosSueltos > 0.01) {
+                partes.push(`${iconBalanza} <strong>${kilosSueltos.toFixed(2)} kg</strong> (Consumo real a pesar)`);
+            }
+        }
+
+        let textoFinal = partes.join(" <br> ");
+        textoFinal += ` <br><span style="color:gray; font-size:14px; margin-left: 45px;">(Total requerido: ${kilosTotales.toFixed(2)} kg)</span>`;
+
+        const renglon = document.createElement('li');
+        // ACÁ AGREGAMOS EL TOTAL DE BULTOS AL TÍTULO
+        renglon.innerHTML = `<strong>${nombre} <span style="color:#666; font-size:0.95rem;">(${bultosTotales} bultos totales)</span>:</strong><br> ${textoFinal}`;
+        listaIngredientes.appendChild(renglon);
+    }
+
+    const tituloPre = document.createElement('h3');
+    tituloPre.innerText = "📦 Pre-Pesadas Totales:";
     listaIngredientes.appendChild(tituloPre);
 
     for (let nombre in totalPremezclas) {
@@ -355,5 +466,6 @@ window.convertirSobranteABolsas = function(nombreIngrediente, bolsasNecesarias) 
     ajustesPedido[nombreIngrediente].bolsas += bolsasNecesarias;
     calcularTotales();
 };
+
 
 
