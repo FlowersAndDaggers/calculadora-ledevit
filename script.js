@@ -330,7 +330,8 @@ if (datos.usaBigBag) {
 
     const tituloPre = document.createElement('h3');
     tituloPre.innerText = "📦 Pre-Pesadas Totales:";
-function calcularTotales() {
+
+    function calcularTotales() {
     if (colaDeProduccion.length === 0) { alert("¡Agregá algo a la lista primero!"); return; }
 
     let totalIngredientes = {}; 
@@ -466,6 +467,8 @@ window.convertirSobranteABolsas = function(nombreIngrediente, bolsasNecesarias) 
     ajustesPedido[nombreIngrediente].bolsas += bolsasNecesarias;
     calcularTotales();
 };
+    
+
 
 
 
