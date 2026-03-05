@@ -357,12 +357,3 @@ window.convertirSobranteABolsas = function(nombreIngrediente, bolsasNecesarias) 
     ajustesPedido[nombreIngrediente].bolsas += bolsasNecesarias;
     calcularTotales();
 };
-                            
-
-    
-
-
-
-
-
-
