@@ -125,6 +125,7 @@ const todasLasRecetas = {
             "Leche Entera": { base: 250, pesoBolsa: 25, bolsasPallet: 40 },
             "Alginato de Sodio": { base: 31.25, pesoBolsa: 25, bolsasPallet: 40 },
             "Goma Guar": { base: 9, pesoBolsa: 25, bolsasPallet: 40 }
+        }
         },    
     "mousseChantilly250": {
         nombre: "Mousse Chantilly 250 (53P:01)",
@@ -354,4 +355,5 @@ window.convertirSobranteABolsas = function(nombreIngrediente, bolsasNecesarias) 
     ajustesPedido[nombreIngrediente].bolsas += bolsasNecesarias;
     calcularTotales();
 };
+
 
