@@ -125,7 +125,29 @@ const todasLasRecetas = {
             "Leche Entera": { base: 250, pesoBolsa: 25, bolsasPallet: 40 },
             "Alginato de Sodio": { base: 31.25, pesoBolsa: 25, bolsasPallet: 40 },
             "Goma Guar": { base: 9, pesoBolsa: 25, bolsasPallet: 40 }
+        },    
+    "mousseChantilly250": {
+        nombre: "Mousse Chantilly 250 (53P:01)",
+        batchTotal: 805.6,
+        premezclas: ["Polvo 1 beige (CHANTILLY+JULIANO)", "Polvo 2 blanco (CHANTILLY+JULIANO)", "Polvo 3 amarillo (CHANTILLY+JULIANO)"],
+        ingredientes: {
+            "Azúcar Impalpable": { base: 400, usaBigBag: true, pesoBigBag: 1000, pesoBolsa: 25, bolsasPallet: 40 },
+            "Agente de batido": { base: 300, pesoBolsa: 25, bolsasPallet: 40 },
+            "Leche Descremada": { base: 50, pesoBolsa: 25, bolsasPallet: 40 },
+            "Paselli BC / Emjel EP 820 C": { base: 50, pesoBolsa: 25, bolsasPallet: 40 },
+            "Alginato de Sodio": { base: 4, pesoBolsa: 25, bolsasPallet: 40 }
         }
+    },
+    "mousseChantillyKilo": {
+        nombre: "Mousse Chantilly Kilo (57P:01)",
+        batchTotal: 751.88,
+        premezclas: ["Polvos 1 Color (MUS K + JULIANO)", "Polvos 2 Sabor (MUS K + JULIANO)"],
+        ingredientes: {
+            "Agente de batido Lamequick": { base: 375, pesoBolsa: 25, bolsasPallet: 40 },
+            "Azúcar Impalpable": { base: 300, usaBigBag: true, pesoBigBag: 1000, pesoBolsa: 25, bolsasPallet: 40 },
+            "Leche Entera Corlasa": { base: 75, pesoBolsa: 25, bolsasPallet: 40 }
+        }
+        
     }
 };
 
@@ -332,3 +354,4 @@ window.convertirSobranteABolsas = function(nombreIngrediente, bolsasNecesarias) 
     ajustesPedido[nombreIngrediente].bolsas += bolsasNecesarias;
     calcularTotales();
 };
+
